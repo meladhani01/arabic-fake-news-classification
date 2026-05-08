@@ -1,4 +1,3 @@
-
 import streamlit as st
 import joblib
 import re
@@ -6,22 +5,24 @@ import nltk
 from nltk.corpus import stopwords
 import os
 
-# Ensure NLTK stopwords are downloaded (if not already)
+# Ensure NLTK stopwords are downloaded
 try:
     nltk.download('stopwords', quiet=True)
 except LookupError:
     pass
+
 arabic_stopwords = set(stopwords.words('arabic'))
 
 # --- Preprocessing functions ---
 def normalize_arabic(text):
-    text = re.sub(r'[ً-ْ]', '', text)
-    text = re.sub(r'[أإآ]', 'ا', text)
-    text = re.sub(r'ؤ', 'و', text)
-    text = re.sub(r'[ئي]', 'ي', text)
-    text = re.sub(r'ـ', '', text)
-    text = re.sub(r'[^؀-ۿ\s]', '', text) # Fixed regex here
-    text = re.sub(r'\s+', ' ', text).strip()
+    text = re.sub(r'[\u064B-\u0652]', '', text) # Remove Tashkeel
+    text = re.sub(r'[إأآا]', 'ا', text)         # Normalize Hamza variants
+    text = re.sub(r'ؤ', 'و', text)              # Normalize Waw variants
+    text = re.sub(r'[ئىي]', 'ي', text)          # Normalize Yeh variants
+    text = re.sub(r'ـ', '', text)               # Remove elongation
+    # Keep only Arabic letters and whitespace
+    text = re.sub(r'[^\u0600-\u06FF\s]', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()    # Normalize spaces
     return text
 
 def remove_arabic_stopwords(text):
@@ -45,9 +46,8 @@ if os.path.exists(model_filename_tuned) and os.path.exists(vectorizer_filename):
         st.sidebar.error(f"Error loading model or vectorizer: {e}")
         st.stop()
 else:
-    st.sidebar.error(f"Model files '{model_filename_tuned}' or '{vectorizer_filename}' not found. Please ensure they are in the same directory as the app.")
+    st.sidebar.error(f"Model files '{model_filename_tuned}' or '{vectorizer_filename}' not found. Please ensure they exist.")
     st.stop()
-
 
 # --- Streamlit App Layout ---
 st.title("Arabic Fake News Classification")
@@ -71,18 +71,17 @@ if st.button("Classify Article"):
             prediction_proba = logistic_model_tuned.predict_proba(article_tfidf)
 
             predicted_label = prediction[0]
+
             # Find the probability of the predicted label
             if predicted_label == 'real':
                 confidence = prediction_proba[0][list(logistic_model_tuned.classes_).index('real')]
             else:
                 confidence = prediction_proba[0][list(logistic_model_tuned.classes_).index('fake')]
 
-            st.write("
----")
+            st.markdown("---")
             st.subheader("Prediction Result:")
             st.metric(label="Predicted Label", value=predicted_label.capitalize())
             st.metric(label="Confidence", value=f"{confidence:.2%}")
-            st.write("
----")
+            st.markdown("---")
     else:
         st.warning("Please enter an article to classify.")
