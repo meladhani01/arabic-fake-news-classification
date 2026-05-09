@@ -1,5 +1,7 @@
 Arabic Fake News Classification Project
 
+## Demo: https://arabic-fake-news-classification-xxmqt4t7ane5xr83as3kvd.streamlit.app/
+
 ​1. Project Overview
 
 ​This project aims to detect and classify Arabic news articles as either "real" or "fake" using Natural Language Processing (NLP) and Machine Learning techniques. The pipeline encompasses data ingestion, exploratory data analysis (EDA), Arabic-specific text preprocessing, feature extraction using TF-IDF, and classification using a hyperparameter-tuned Logistic Regression model. Furthermore, the project includes deployment implementations using both a Flask REST API and a Streamlit web application.
